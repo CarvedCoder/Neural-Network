@@ -21,48 +21,63 @@ double square (double data){
     return data*data;
 }
 
-void eval(double w){
+void eval(double w,double b){
      for(size_t i = 0; i < TRAIN_SIZE;i++){
         double x = train[i][0];
-        double y = x * w;
-
+        double y = x * w + b;
+        printf("W = %f , B = %f\n",w,b);
         printf("Actual : %f and Expected : %f\n",y,train[i][1]);
     }
 }
 
-double error_rate(double w){
+double error_rate(double w,double b){
      double result = 0.0f;
      for(size_t i = 0; i < TRAIN_SIZE;i++){
         double x = train[i][0];
-        double y = x * w;
+        double y = x * w + b;
         double d = y - train[i][1];
         result += square(d);
     }
     return (result /= TRAIN_SIZE);
 }
 
-double derivative (double (*func)(double),double val){
-    double h = 1e-6;
-    return ((func(val+h)-func(val))/h);
+double grad_w (double w, double b){
+    double sum = 0;
+    for (size_t i =0; i < TRAIN_SIZE;i++){
+        double x = train[i][0];
+        double pred_y = x * w + b;
+        sum += x*(pred_y - train[i][1]);
+    }
+    return (2.0/TRAIN_SIZE) * sum;
 }
+
+double grad_b (double w, double b){
+    double sum = 0;
+    for (size_t i =0; i < TRAIN_SIZE;i++){
+        double x = train[i][0];
+        double pred_y = x * w + b;
+        sum += (pred_y - train[i][1]);
+    }
+    return (2.0/TRAIN_SIZE) * sum;
+}
+
 
 int main(void){
         // y = x * w
     srand(1);
     double w = rand_double()*10;
     double b = rand_double()*10;
-    eval(w);
-    printf("error_rate : %f\n",error_rate(w));
-    
-    double lr = 1e-3;
-    for(size_t i = 0; i < 500; i++){
-        double grad_w = derivative(error_rate,w);
-        double grad_b = derivative(error_rate,b);
-        w -= lr * grad_w;
-        b-= lr * grad_b;
-        printf("error_rate : %f\n",error_rate(w));
+    eval(w,b);
+    printf("error_rate : %f\n",error_rate(w,b));
+    double lr = 0.01;
+    for(size_t i = 0; i < 5500; i++){
+        double dw = grad_w (w,b);
+        double db = grad_b (w,b);
+        w -= lr * dw;
+        b -= lr * db;
     }
+    printf("error_rate : %f\n",error_rate(w,b));
 
     printf("%.10f\n",w);
-    eval(w);
+    eval(w,b);
 }
